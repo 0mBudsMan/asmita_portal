@@ -31,7 +31,7 @@ export default function AppView() {
   const [editId, setEditId] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [sport, setSport] = useState('Athletics (M)');
-  const [day, setDay] = useState("");
+  const [day, setDay] = useState('');
   const [fixtures, setFixtures] = useState([]);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null);
@@ -39,8 +39,7 @@ export default function AppView() {
   if (alsorole === 'head' || alsorole === 'volunteer' || alsorole === 'executive') {
     useEffect(() => {
       setLoading(true);
-      // fetch(`https://app-admin-api.asmitaiiita.org/api/fixtures/`)
-
+      //   fetch(`http://localhost:8000/api/fixtures/`)
       fetch(`https://app-admin-api.asmitaiiita.org/api/fixtures`)
         .then((res) => {
           console.log('res: ', res);
@@ -60,11 +59,9 @@ export default function AppView() {
       setStatus(null);
       if (editMode) {
         alert('Toggle edit mode off first.');
-      }
-      else if(day===""){
-        alert("Day cannot be empty")
-      }
-       else {
+      } else if (day === '') {
+        alert('Day cannot be empty');
+      } else {
         try {
           const data = {
             Sport: sport,
@@ -75,15 +72,24 @@ export default function AppView() {
           if (data.HTMLString.length !== 0) {
             const res = await axios.post(
               `https://app-admin-api.asmitaiiita.org/api/fixtures/create`,
-              data
+              //   `http://localhost:8000/api/fixtures/create`,
+              data,
+              {
+                headers: {
+                  authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+              }
             );
             setStatus(`Successfully added fixture for Day ${data.Day}, ${data.Sport}`);
+            alert(`Successfully added fixture for Day ${data.Day}, ${data.Sport}`);
             console.log(res);
           } else {
             setStatus('Failure while adding fixture');
+            alert('Failure while adding fixture');
           }
         } catch (err) {
           setStatus('Failure while requesting to add error (HTTP)');
+          alert('Failure while requesting to add error (HTTP)');
           console.log('Error occurred while making request to add fixture: ', err);
         }
       }
@@ -93,7 +99,13 @@ export default function AppView() {
       try {
         console.log('id for deletion: ', id);
         const deletedFixture = await axios.delete(
-          `https://app-admin-api.asmitaiiita.org/api/fixtures/${id}`
+          `https://app-admin-api.asmitaiiita.org/api/fixtures/${id}`,
+          //   `http://localhost:8000/api/fixtures/${id}`,
+          {
+            headers: {
+              authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+          }
         );
 
         console.log('Deleted fixture: ', deletedFixture);
@@ -104,8 +116,16 @@ export default function AppView() {
         setStatus(
           `Successfully deleted fixture for Day ${deletedFixture.data.data.Day}, ${deletedFixture.data.data.Sport}`
         );
+        alert(
+          `Successfully deleted fixture for Day ${deletedFixture.data.data.Day}, ${deletedFixture.data.data.Sport}`
+        );
       } catch (err) {
-        setStatus('failure');
+        setStatus(
+          `Failure while deleting fixture for Day ${deletedFixture.data.data.Day}, ${deletedFixture.data.data.Sport}`
+        );
+        alert(
+          `Failure while deleting fixture for Day ${deletedFixture.data.data.Day}, ${deletedFixture.data.data.Sport}`
+        );
         console.log('Error while delete request: ', err);
       }
     };
@@ -122,8 +142,14 @@ export default function AppView() {
             HTMLString: editorRef.current.getContent(),
           };
           const updatedFixure = await axios.patch(
+            // `http://localhost:8000/api/fixtures/${id}`,
             `https://app-admin-api.asmitaiiita.org/api/fixtures/${id}`,
-            newBody
+            newBody,
+            {
+              headers: {
+                authorization: `Bearer ${localStorage.getItem('token')}`,
+              },
+            }
           );
           console.log('Updated fixture: ', updatedFixure.data.data);
           const newFixtures = fixtures.map((fixture) => {
@@ -133,8 +159,10 @@ export default function AppView() {
           console.log(newFixtures);
           setFixtures(newFixtures);
           setStatus(`Successfully edited fixture for Day ${newBody.Day}, ${newBody.Sport}`);
+          alert(`Successfully edited fixture for Day ${newBody.Day}, ${newBody.Sport}`);
         } catch (err) {
-          setStatus('failure');
+          setStatus(`Failure while editing fixture for Day ${newBody.Day}, ${newBody.Sport}`);
+          setStatus(`Failure while editing fixture for Day ${newBody.Day}, ${newBody.Sport}`);
           console.log('Error while making request to edit fixture: ', err);
         }
       }
@@ -211,9 +239,16 @@ export default function AppView() {
             }}
           >
             <InputLabel id="demo-simple-select-label">Day: </InputLabel>
-            <TextField id="outlined-basic" label="Day" value={day} variant="outlined" onChange={(e)=>{
-              setDay(e.target.value);
-            }} required="true" />
+            <TextField
+              id="outlined-basic"
+              label="Day"
+              value={day}
+              variant="outlined"
+              onChange={(e) => {
+                setDay(e.target.value);
+              }}
+              required="true"
+            />
           </Box>
         </Box>
 
