@@ -24,6 +24,7 @@ export default function AthleticsAdd() {
   const router = useRouter();
   const navigate = useNavigate();
   const dates = [
+    '8 March 2024',
     '9 March 2024',
     '10 March 2024',
     '11 March 2024',
