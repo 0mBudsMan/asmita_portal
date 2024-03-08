@@ -77,8 +77,11 @@ export default function CricketAdd() {
         .then((response) => {
           console.log(response);
           navigate('../../../', { relative: 'path' });
+          
         });
+        alert("Successfully Created Result");
     } catch (error) {
+        alert("Error in creation");
       console.log(error);
     }
   };

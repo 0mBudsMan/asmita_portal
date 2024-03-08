@@ -90,10 +90,12 @@ export default function CricketEdit() {
           },
         })
         .then((response) => {
-          console.log(response);
+            console.log(response);
           navigate('../../../', { relative: 'path' });
         });
+        alert("Successfully edited");
     } catch (error) {
+        alert("error in editing");
       console.log(error);
     }
   };
@@ -106,9 +108,11 @@ export default function CricketEdit() {
           },
         })
         .then((response) => {
-          console.log(response);
+            console.log(response);
         });
+        alert("Successfully deleted");
     } catch (error) {
+        alert("Error");
       console.log(error);
     }
 

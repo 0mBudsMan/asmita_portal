@@ -85,9 +85,11 @@ export default function FootballEdit() {
           },
         })
         .then((response) => {
-          console.log(response);
+            console.log(response);
         });
+        alert("Successfully edited");
     } catch (error) {
+        alert("error in editing");
       console.log(error);
     }
 
@@ -102,9 +104,11 @@ export default function FootballEdit() {
           },
         })
         .then((response) => {
-          console.log(response);
+            console.log(response);
         });
+        alert("Successfully deleted");
     } catch (error) {
+        alert("Error in deletion");
       console.log(error);
     }
 

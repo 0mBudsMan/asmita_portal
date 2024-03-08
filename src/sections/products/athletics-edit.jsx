@@ -71,9 +71,12 @@ export default function AthleticsEdit() {
         })
         .then((response) => {
           console.log(response);
+          
         });
+        alert("Successfully Edited");
     } catch (error) {
       console.log(error);
+      alert("Error in Editing");
     }
 
     navigate('../../../', { relative: 'path' });
@@ -88,9 +91,11 @@ export default function AthleticsEdit() {
         })
         .then((response) => {
           console.log(response);
+          alert("Successfully Deleted");
         });
     } catch (error) {
       console.log(error);
+      alert("Error in Deleting");
     }
 
     navigate('../../../', { relative: 'path' });

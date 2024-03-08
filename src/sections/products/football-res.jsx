@@ -69,9 +69,11 @@ export default function FootballAdd() {
           },
         })
         .then((response) => {
-          console.log(response);
+            console.log(response);
         });
+        alert("Successfully Created Result");
     } catch (error) {
+        alert("Error in creation");
       console.log(error);
     }
 

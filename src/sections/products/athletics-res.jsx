@@ -61,6 +61,7 @@ export default function AthleticsAdd() {
         .then((response) => {
           console.log(response);
         });
+        alert("Successfully Created Result");
     } catch (error) {
       console.log(error);
     }
