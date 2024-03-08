@@ -13,7 +13,7 @@ const Results = (props) => {
     <Box sx={{display:"flex", flexDirection: "column", width: "auto"}}>
         <a href={pointTo}>
         <Box sx={{backgroundColor: "#59D5E0", display: "flex", justifyContent: "space-between", paddingX: "5px"}}>
-            <h2 style={{textAlign: "center",}}>{props.props.Type}</h2>
+            <h2 style={{textAlign: "center",}}>{props.props.SportName}</h2>
             <h2 style={{textAlign: "center"}}>{props.props.MatchName}</h2>
             <h2 style={{textAlign: "center"}}>{props.props.GroupStage}</h2>
         </Box>
