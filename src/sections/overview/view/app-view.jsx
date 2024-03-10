@@ -79,7 +79,7 @@ export default function AppView() {
                   authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
               }
-            );
+            ).catch((err)=>console.log(err));
             setStatus(`Successfully added fixture for Day ${data.Day}, ${data.Sport}`);
             alert(`Successfully added fixture for Day ${data.Day}, ${data.Sport}`);
             console.log(res);
