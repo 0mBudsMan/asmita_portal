@@ -98,5 +98,9 @@
   "Kurnool": {
     "name": "Kurnool",
     "logo_link": "https://upload.wikimedia.org/wikipedia/en/5/5f/Indian_Institute_of_Information_Technology_Design_and_Manufacturing%2C_Kurnool_logo.png"
+  },
+  "Gwalior": {
+    "name": "Gwalior",
+    "logo_link": "https://upload.wikimedia.org/wikipedia/en/b/b3/Atal_Bihari_Vajpayee_Indian_Institute_of_Information_Technology_and_Management%2C_Gwalior_logo.jpg"
   }
 }
