@@ -13,10 +13,23 @@ import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import { sports } from 'src/assets/sports';
 import Label from 'src/components/label';
-import { jwtDecode } from 'jwt-decode';
 import { TextField } from '@mui/material';
 
 // ----------------------------------------------------------------------
+import { jwtDecode } from 'jwt-decode';
+function isExpired() {
+  const token = localStorage.getItem('token');
+  let data = token ? jwtDecode(token) : null;
+  if (data) {
+    if (data.exp <= Date.now() / 1000) {
+      localStorage.removeItem('token');
+      return true;
+    }
+    return false;
+  } else {
+    return true;
+  }
+}
 
 export default function AppView() {
   let alsorole = '';
@@ -39,22 +52,28 @@ export default function AppView() {
   if (alsorole === 'head' || alsorole === 'volunteer' || alsorole === 'executive') {
     useEffect(() => {
       setLoading(true);
-      //   fetch(`http://localhost:8000/api/fixtures/`)
-      fetch(`https://app-admin-api.asmitaiiita.org/api/fixtures`)
-        .then((res) => {
-          console.log('res: ', res);
-          return res.json();
-        })
-        .then((allFixtures) => {
-          console.log('all fixtures: ', allFixtures);
-          setFixtures(allFixtures.data);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.log('Error: ', err);
-          setLoading(false);
-        });
+      if (isExpired()) {
+        alert('Please relogin to be able to make changes.');
+        window.location.href = '/login';
+      } else {
+        // fetch(`http://localhost:8000/api/fixtures/`)
+        fetch(`https://app-admin-api.asmitaiiita.org/api/fixtures`)
+          .then((res) => {
+            console.log('res: ', res);
+            return res.json();
+          })
+          .then((allFixtures) => {
+            console.log('all fixtures: ', allFixtures);
+            setFixtures(allFixtures.data);
+            setLoading(false);
+          })
+          .catch((err) => {
+            console.log('Error: ', err);
+            setLoading(false);
+          });
+      }
     }, []);
+
     const handleAddFixture = async () => {
       setStatus(null);
       if (editMode) {
@@ -62,64 +81,78 @@ export default function AppView() {
       } else if (day === '') {
         alert('Day cannot be empty');
       } else {
-        try {
-          const data = {
-            Sport: sport,
-            Day: day,
-            HTMLString: editorRef.current.getContent(),
-          };
-          console.log(data);
-          if (data.HTMLString.length !== 0) {
-            const res = await axios.post(
-              `https://app-admin-api.asmitaiiita.org/api/fixtures/create`,
-              //   `http://localhost:8000/api/fixtures/create`,
-              data,
-              {
-                headers: {
-                  authorization: `Bearer ${localStorage.getItem('token')}`,
-                },
-              }
-            ).catch((err)=>console.log(err))
-            .then((res)=>console.log(res));
-            setStatus(`Successfully added fixture for Day ${data.Day}, ${data.Sport}`);
-            alert(`Successfully added fixture for Day ${data.Day}, ${data.Sport}`);
-            console.log(res);
-          } else {
-            setStatus('Failure while adding fixture');
-            alert('Failure while adding fixture');
+        if (!isExpired()) {
+          try {
+            const data = {
+              Sport: sport,
+              Day: day,
+              HTMLString: editorRef.current.getContent(),
+            };
+            console.log(data);
+            if (data.HTMLString.length !== 0) {
+              const res = await axios
+                .post(
+                  `https://app-admin-api.asmitaiiita.org/api/fixtures/create`,
+                  //   `http://localhost:8000/api/fixtures/create`,
+                  data,
+                  {
+                    headers: {
+                      authorization: `Bearer ${localStorage.getItem('token')}`,
+                    },
+                  }
+                )
+                .catch((err) => console.log(err))
+                .then((res) => console.log(res));
+              setStatus(`Successfully added fixture for Day ${data.Day}, ${data.Sport}`);
+              alert(`Successfully added fixture for Day ${data.Day}, ${data.Sport}`);
+              console.log(res);
+            } else {
+              setStatus('Failure while adding fixture');
+              alert('Failure while adding fixture');
+            }
+          } catch (err) {
+            setStatus('Failure while requesting to add error (HTTP)');
+            alert('Failure while requesting to add error (HTTP)');
+            console.log('Error occurred while making request to add fixture: ', err);
           }
-        } catch (err) {
-          setStatus('Failure while requesting to add error (HTTP)');
-          alert('Failure while requesting to add error (HTTP)');
-          console.log('Error occurred while making request to add fixture: ', err);
+        } else {
+          setStatus('Relogin.');
+          alert('Please relogin.');
+          window.location.href = '/login';
         }
       }
     };
     const handleDeleteFixture = async (id) => {
       setStatus(null);
       try {
-        console.log('id for deletion: ', id);
-        const deletedFixture = await axios.delete(
-          `https://app-admin-api.asmitaiiita.org/api/fixtures/${id}`,
-          //   `http://localhost:8000/api/fixtures/${id}`,
-          {
-            headers: {
-              authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-          }
-        );
+        if (!isExpired()) {
+          console.log('id for deletion: ', id);
+          const deletedFixture = await axios.delete(
+            `https://app-admin-api.asmitaiiita.org/api/fixtures/${id}`,
+            // `http://localhost:8000/api/fixtures/${id}`,
+            {
+              headers: {
+                authorization: `Bearer ${localStorage.getItem('token')}`,
+              },
+            }
+          );
 
-        console.log('Deleted fixture: ', deletedFixture);
-        const newFixtures = fixtures.filter((fixture) => fixture._id !== id);
-        console.log('New fixtures: ', newFixtures);
+          console.log('Deleted fixture: ', deletedFixture);
+          const newFixtures = fixtures.filter((fixture) => fixture._id !== id);
+          console.log('New fixtures: ', newFixtures);
 
-        setFixtures(newFixtures);
-        setStatus(
-          `Successfully deleted fixture for Day ${deletedFixture.data.data.Day}, ${deletedFixture.data.data.Sport}`
-        );
-        alert(
-          `Successfully deleted fixture for Day ${deletedFixture.data.data.Day}, ${deletedFixture.data.data.Sport}`
-        );
+          setFixtures(newFixtures);
+          setStatus(
+            `Successfully deleted fixture for Day ${deletedFixture.data.data.Day}, ${deletedFixture.data.data.Sport}`
+          );
+          alert(
+            `Successfully deleted fixture for Day ${deletedFixture.data.data.Day}, ${deletedFixture.data.data.Sport}`
+          );
+        } else {
+          setStatus('Relogin.');
+          alert('Please relogin.');
+          window.location.href = '/login';
+        }
       } catch (err) {
         setStatus(
           `Failure while deleting fixture for Day ${deletedFixture.data.data.Day}, ${deletedFixture.data.data.Sport}`
@@ -136,31 +169,37 @@ export default function AppView() {
         alert('Toggle edit mode on.');
       } else {
         try {
-          const newBody = {
-            Sport: sport,
-            Day: day,
-            Date: new Date(),
-            HTMLString: editorRef.current.getContent(),
-          };
-          const updatedFixure = await axios.patch(
-            // `http://localhost:8000/api/fixtures/${id}`,
-            `https://app-admin-api.asmitaiiita.org/api/fixtures/${id}`,
-            newBody,
-            {
-              headers: {
-                authorization: `Bearer ${localStorage.getItem('token')}`,
-              },
-            }
-          );
-          console.log('Updated fixture: ', updatedFixure.data.data);
-          const newFixtures = fixtures.map((fixture) => {
-            if (fixture._id === id) return updatedFixure.data.data;
-            return fixture;
-          });
-          console.log(newFixtures);
-          setFixtures(newFixtures);
-          setStatus(`Successfully edited fixture for Day ${newBody.Day}, ${newBody.Sport}`);
-          alert(`Successfully edited fixture for Day ${newBody.Day}, ${newBody.Sport}`);
+          if (!isExpired()) {
+            const newBody = {
+              Sport: sport,
+              Day: day,
+              Date: new Date(),
+              HTMLString: editorRef.current.getContent(),
+            };
+            const updatedFixure = await axios.patch(
+              `https://app-admin-api.asmitaiiita.org/api/fixtures/${id}`,
+              //   `http://localhost:8000/api/fixtures/${id}`,
+              newBody,
+              {
+                headers: {
+                  authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+              }
+            );
+            console.log('Updated fixture: ', updatedFixure.data.data);
+            const newFixtures = fixtures.map((fixture) => {
+              if (fixture._id === id) return updatedFixure.data.data;
+              return fixture;
+            });
+            console.log(newFixtures);
+            setFixtures(newFixtures);
+            setStatus(`Successfully edited fixture for Day ${newBody.Day}, ${newBody.Sport}`);
+            alert(`Successfully edited fixture for Day ${newBody.Day}, ${newBody.Sport}`);
+          } else {
+            setStatus('Relogin.');
+            alert('Please relogin.');
+            window.location.href = '/login';
+          }
         } catch (err) {
           setStatus(`Failure while editing fixture for Day ${newBody.Day}, ${newBody.Sport}`);
           setStatus(`Failure while editing fixture for Day ${newBody.Day}, ${newBody.Sport}`);
