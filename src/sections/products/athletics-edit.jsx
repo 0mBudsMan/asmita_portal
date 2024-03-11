@@ -19,6 +19,20 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { sports } from 'src/assets/sports.js';
 
 // ----------------------------------------------------------------------
+import { jwtDecode } from 'jwt-decode';
+function isExpired() {
+  const token = localStorage.getItem('token');
+  let data = token ? jwtDecode(token) : null;
+  if (data) {
+    if (data.exp <= Date.now() / 1000) {
+      localStorage.removeItem('token');
+      return true;
+    }
+    return false;
+  } else {
+    return true;
+  }
+}
 
 export default function AthleticsEdit() {
   const dates = [
@@ -46,12 +60,17 @@ export default function AthleticsEdit() {
   });
   useEffect(() => {
     console.log('loading');
-    axios
-      .get('https://app-admin-api.asmitaiiita.org/api/results/getResults/athletics/' + rid)
-      .then((response) => {
-        console.log(response.data.data);
-        setData(response.data.data);
-      });
+    if (isExpired()) {
+      alert('Please relogin to be able to make changes.');
+      window.location.href = '/login';
+    } else {
+      axios
+        .get('https://app-admin-api.asmitaiiita.org/api/results/getResults/athletics/' + rid)
+        .then((response) => {
+          console.log(response.data.data);
+          setData(response.data.data);
+        });
+    }
   }, []);
 
   function changeData(field, data1) {
@@ -63,39 +82,48 @@ export default function AthleticsEdit() {
 
   const handleSubmit = (event) => {
     try {
-      axios
-        .patch('https://app-admin-api.asmitaiiita.org/api/results/athletics/' + rid, data, {
-          headers: {
-            authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        })
-        .then((response) => {
-          console.log(response);
-          
-        });
-        alert("Successfully Edited");
+      if (!isExpired()) {
+        axios
+          .patch('https://app-admin-api.asmitaiiita.org/api/results/athletics/' + rid, data, {
+            headers: {
+              authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+          })
+          .then((response) => {
+            console.log(response);
+          });
+        alert('Successfully Edited');
+      } else {
+        alert('Please relogin.');
+        window.location.href = '/login';
+      }
     } catch (error) {
       console.log(error);
-      alert("Error in Editing");
+      alert('Error in Editing');
     }
 
     navigate('../../../', { relative: 'path' });
   };
   const handleDelete = (event) => {
     try {
-      axios
-        .delete('https://app-admin-api.asmitaiiita.org/api/results/athletics/' + rid, {
-          headers: {
-            authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        })
-        .then((response) => {
-          console.log(response);
-          alert("Successfully Deleted");
-        });
+      if (!isExpired()) {
+        axios
+          .delete('https://app-admin-api.asmitaiiita.org/api/results/athletics/' + rid, {
+            headers: {
+              authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+          })
+          .then((response) => {
+            console.log(response);
+            alert('Successfully Deleted');
+          });
+      } else {
+        alert('Please relogin.');
+        window.location.href = '/login';
+      }
     } catch (error) {
       console.log(error);
-      alert("Error in Deleting");
+      alert('Error in Deleting');
     }
 
     navigate('../../../', { relative: 'path' });

@@ -19,6 +19,20 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { sports } from 'src/assets/sports';
 
 // ----------------------------------------------------------------------
+import { jwtDecode } from 'jwt-decode';
+function isExpired() {
+  const token = localStorage.getItem('token');
+  let data = token ? jwtDecode(token) : null;
+  if (data) {
+    if (data.exp <= Date.now() / 1000) {
+      localStorage.removeItem('token');
+      return true;
+    }
+    return false;
+  } else {
+    return true;
+  }
+}
 
 export default function CricketEdit() {
   const dates = [
@@ -67,52 +81,67 @@ export default function CricketEdit() {
     });
   }
   useEffect(() => {
-    console.log('loading');
-    axios
-      .get('https://app-admin-api.asmitaiiita.org/api/results/getResults/cricket/' + rid)
-      .then((response) => {
-        console.log(response.data.data);
-        var newdata = response.data.data;
-        newdata.ClgImg1 = '';
-        newdata.ClgImg2 = '';
-        setData(newdata);
-        changeData('ClgName1', response.data.data.ClgName1);
-        changeData('ClgName2', response.data.data.ClgName2);
-      });
+    if (isExpired()) {
+      alert('Please relogin to be able to make changes.');
+      window.location.href = '/login';
+    } else {
+      console.log('loading');
+      axios
+        .get('https://app-admin-api.asmitaiiita.org/api/results/getResults/cricket/' + rid)
+        .then((response) => {
+          console.log(response.data.data);
+          var newdata = response.data.data;
+          newdata.ClgImg1 = '';
+          newdata.ClgImg2 = '';
+          setData(newdata);
+          changeData('ClgName1', response.data.data.ClgName1);
+          changeData('ClgName2', response.data.data.ClgName2);
+        });
+    }
   }, []);
 
   const handleSubmit = (event) => {
     try {
-      axios
-        .patch('https://app-admin-api.asmitaiiita.org/api/results/cricket/' + rid, data, {
-          headers: {
-            authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        })
-        .then((response) => {
+      if (!isExpired()) {
+        axios
+          .patch('https://app-admin-api.asmitaiiita.org/api/results/cricket/' + rid, data, {
+            headers: {
+              authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+          })
+          .then((response) => {
             console.log(response);
-          navigate('../../../', { relative: 'path' });
-        });
-        alert("Successfully edited");
+            navigate('../../../', { relative: 'path' });
+          });
+        alert('Successfully edited');
+      } else {
+        alert('Please relogin.');
+        window.location.href = '/login';
+      }
     } catch (error) {
-        alert("error in editing");
+      alert('error in editing');
       console.log(error);
     }
   };
   const handleDelete = (event) => {
     try {
-      axios
-        .delete('https://app-admin-api.asmitaiiita.org/api/results/cricket/' + rid, {
-          headers: {
-            authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        })
-        .then((response) => {
+      if (!isExpired()) {
+        axios
+          .delete('https://app-admin-api.asmitaiiita.org/api/results/cricket/' + rid, {
+            headers: {
+              authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+          })
+          .then((response) => {
             console.log(response);
-        });
-        alert("Successfully deleted");
+          });
+        alert('Successfully deleted');
+      } else {
+        alert('Please relogin.');
+        window.location.href = '/login';
+      }
     } catch (error) {
-        alert("Error");
+      alert('Error');
       console.log(error);
     }
 

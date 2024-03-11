@@ -19,6 +19,20 @@ import { useNavigate } from 'react-router-dom';
 import { sports } from '../../assets/sports.js';
 
 // ----------------------------------------------------------------------
+import { jwtDecode } from 'jwt-decode';
+function isExpired() {
+  const token = localStorage.getItem('token');
+  let data = token ? jwtDecode(token) : null;
+  if (data) {
+    if (data.exp <= Date.now() / 1000) {
+      localStorage.removeItem('token');
+      return true;
+    }
+    return false;
+  } else {
+    return true;
+  }
+}
 
 export default function AthleticsAdd() {
   const router = useRouter();
@@ -52,16 +66,21 @@ export default function AthleticsAdd() {
 
   const handleSubmit = (event) => {
     try {
-      axios
-        .post('https://app-admin-api.asmitaiiita.org/api/results/athletics/', data, {
-          headers: {
-            authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        })
-        .then((response) => {
-          console.log(response);
-        });
-        alert("Successfully Created Result");
+      if (!isExpired()) {
+        axios
+          .post('https://app-admin-api.asmitaiiita.org/api/results/athletics/', data, {
+            headers: {
+              authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+          })
+          .then((response) => {
+            console.log(response);
+          });
+        alert('Successfully Created Result');
+      } else {
+        alert('Please relogin.');
+        window.location.href = '/login';
+      }
     } catch (error) {
       console.log(error);
     }

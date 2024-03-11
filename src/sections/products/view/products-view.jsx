@@ -14,14 +14,28 @@ import Results from 'src/components/result/results';
 import { useAuth } from 'src/context/loginContext';
 import { jwtDecode } from 'jwt-decode';
 // ----------------------------------------------------------------------
+function isExpired() {
+  const token = localStorage.getItem('token');
+  let data = token ? jwtDecode(token) : null;
+  if (data) {
+    if (data.exp <= Date.now() / 1000) {
+      localStorage.removeItem('token');
+      return true;
+    }
+    return false;
+  } else {
+    return true;
+  }
+}
 
 export default function ProductsView() {
   // const [dataLoaded,setDataLoaded]=useState(false);
-  let alsorole="";
-  if(localStorage.getItem("token")!==null)alsorole=(jwtDecode(localStorage.getItem("token")).role)
+  let alsorole = '';
+  if (localStorage.getItem('token') !== null)
+    alsorole = jwtDecode(localStorage.getItem('token')).role;
   const router = useRouter();
   const [resultData, setResData] = useState([]);
-  const {name,role,check,login}=useAuth();
+  const { name, role, check, login } = useAuth();
 
   function handleNewRes() {
     router.push('addresult');
@@ -29,41 +43,44 @@ export default function ProductsView() {
 
   useEffect(() => {
     // setDataLoaded(false);
-    console.log('loading');
-    axios.get('https://app-admin-api.asmitaiiita.org/api/results/getResults').then((response) => {
-      console.log(response.data.data);
-      setResData(response.data.data);
-      // setDataLoaded(true);
-    });
+    if (isExpired()) {
+      alert('Please relogin to be able to make changes.');
+      window.location.href = '/login';
+    } else {
+      console.log('loading');
+      axios.get('https://app-admin-api.asmitaiiita.org/api/results/getResults').then((response) => {
+        console.log(response.data.data);
+        setResData(response.data.data);
+        // setDataLoaded(true);
+      });
+    }
   }, []);
   //console.log(check)
-  if(alsorole==="head"||alsorole==="volunteer"||alsorole==="executive"){
-  return (
-    <Container>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-        <Typography variant="h4">Results</Typography>
+  if (alsorole === 'head' || alsorole === 'volunteer' || alsorole === 'executive') {
+    return (
+      <Container>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+          <Typography variant="h4">Results</Typography>
 
-        <Button
-          onClick={handleNewRes}
-          variant="contained"
-          color="inherit"
-          startIcon={<Iconify icon="eva:plus-fill" />}
-        >
-          New Result
-        </Button>
-      </Stack>
-      <Grid container spacing={3}>
-        {resultData.map((result) => (
-          <Grid key={result.id} xs={12} sm={6} md={6}>
-            <Results props={result}></Results>
-          </Grid>
-        ))}
-      </Grid>
-    </Container>
-  );
+          <Button
+            onClick={handleNewRes}
+            variant="contained"
+            color="inherit"
+            startIcon={<Iconify icon="eva:plus-fill" />}
+          >
+            New Result
+          </Button>
+        </Stack>
+        <Grid container spacing={3}>
+          {resultData.map((result) => (
+            <Grid key={result.id} xs={12} sm={6} md={6}>
+              <Results props={result}></Results>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    );
+  } else {
+    return <h1>NOT AUTHORISED</h1>;
+  }
 }
-else{
-  return(
-    <h1>NOT AUTHORISED</h1>
-  )
-}}

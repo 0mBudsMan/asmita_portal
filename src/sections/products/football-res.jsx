@@ -18,6 +18,20 @@ import { sports } from 'src/assets/sports';
 import { useRouter } from 'src/routes/hooks';
 
 // ----------------------------------------------------------------------
+import { jwtDecode } from 'jwt-decode';
+function isExpired() {
+  const token = localStorage.getItem('token');
+  let data = token ? jwtDecode(token) : null;
+  if (data) {
+    if (data.exp <= Date.now() / 1000) {
+      localStorage.removeItem('token');
+      return true;
+    }
+    return false;
+  } else {
+    return true;
+  }
+}
 
 export default function FootballAdd() {
   const dates = [
@@ -62,18 +76,23 @@ export default function FootballAdd() {
 
   const handleSubmit = (event) => {
     try {
-      axios
-        .post('https://app-admin-api.asmitaiiita.org/api/results/football/', data, {
-          headers: {
-            authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        })
-        .then((response) => {
+      if (!isExpired()) {
+        axios
+          .post('https://app-admin-api.asmitaiiita.org/api/results/football/', data, {
+            headers: {
+              authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+          })
+          .then((response) => {
             console.log(response);
-        });
-        alert("Successfully Created Result");
+          });
+        alert('Successfully Created Result');
+      } else {
+        alert('Please relogin.');
+        window.location.href = '/login';
+      }
     } catch (error) {
-        alert("Error in creation");
+      alert('Error in creation');
       console.log(error);
     }
 
